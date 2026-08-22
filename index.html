@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>🎡 랜덤 룰렛</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+
+            min-height: 100vh;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            padding: 20px;
+
+            font-family:
+                Arial,
+                "Noto Sans KR",
+                sans-serif;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #667eea,
+                    #764ba2
+                );
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+
+            background: white;
+
+            padding: 30px;
+
+            border-radius: 25px;
+
+            box-shadow:
+                0 20px 60px
+                rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+
+            margin: 0 0 8px;
+
+            font-size: 32px;
+        }
+
+        .description {
+            text-align: center;
+
+            color: #777;
+
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+
+            height: 140px;
+
+            padding: 15px;
+
+            resize: none;
+
+            border: 2px solid #ddd;
+
+            border-radius: 15px;
+
+            font-size: 16px;
+
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: #667eea;
+        }
+
+
+        /* 룰렛 */
+
+        .roulette-area {
+
+            position: relative;
+
+            width: min(90vw, 500px);
+
+            aspect-ratio: 1 / 1;
+
+            margin: 35px auto;
+        }
+
+        canvas {
+
+            position: absolute;
+
+            width: 100%;
+            height: 100%;
+
+            left: 0;
+            top: 0;
+
+            border-radius: 50%;
+
+            border: 8px solid white;
+
+            box-shadow:
+                0 10px 30px
+                rgba(0,0,0,0.3);
+
+            transition:
+                transform
+                5.5s
+                cubic-bezier(
+                    0.12,
+                    0.75,
+                    0.15,
+                    1
+                );
+        }
+
+
+        /* 가운데 버튼 */
+
+        .center {
+
+            position: absolute;
+
+            left: 50%;
+            top: 50%;
+
+            transform:
+                translate(-50%, -50%);
+
+            width: 85px;
+            height: 85px;
+
+            border-radius: 50%;
+
+            background: white;
+
+            border:
+                6px solid #333;
+
+            z-index: 10;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            font-size: 30px;
+
+            box-shadow:
+                0 5px 15px
+                rgba(0,0,0,0.3);
+        }
+
+
+        /* 화살표 */
+
+        .pointer {
+
+            position: absolute;
+
+            z-index: 20;
+
+            top: -20px;
+
+            left: 50%;
+
+            transform:
+                translateX(-50%);
+
+            width: 0;
+            height: 0;
+
+            border-left:
+                25px solid transparent;
+
+            border-right:
+                25px solid transparent;
+
+            border-top:
+                50px solid #ff4757;
+
+            filter:
+                drop-shadow(
+                    0 4px 4px
+                    rgba(0,0,0,0.3)
+                );
+        }
+
+
+        /* 버튼 */
+
+        button {
+
+            width: 100%;
+
+            padding: 16px;
+
+            margin-top: 10px;
+
+            border: none;
+
+            border-radius: 15px;
+
+            font-size: 18px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.2s;
+        }
+
+        button:hover {
+            transform:
+                translateY(-2px);
+        }
+
+        button:active {
+            transform:
+                scale(0.98);
+        }
+
+        .draw {
+
+            color: white;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #667eea,
+                    #764ba2
+                );
+
+            box-shadow:
+                0 8px 20px
+                rgba(
+                    102,
+                    126,
+                    234,
+                    0.35
+                );
+        }
+
+        .draw:disabled {
+
+            opacity: 0.5;
+
+            cursor: not-allowed;
+
+            transform: none;
+        }
+
+        .reset {
+
+            background: #eee;
+
+            color: #333;
+        }
+
+
+        /* 결과 */
+
+        .result {
+
+            min-height: 50px;
+
+            margin-top: 20px;
+
+            text-align: center;
+
+            font-size: 25px;
+
+            font-weight: bold;
+        }
+
+        .winner {
+
+            animation:
+                winnerAnimation
+                0.7s
+                ease-out;
+        }
+
+        @keyframes winnerAnimation {
+
+            0% {
+
+                transform:
+                    scale(0.3);
+
+                opacity: 0;
+            }
+
+            70% {
+
+                transform:
+                    scale(1.2);
+            }
+
+            100% {
+
+                transform:
+                    scale(1);
+
+                opacity: 1;
+            }
+        }
+
+        .count {
+
+            text-align: center;
+
+            color: #777;
+
+            margin-top: 10px;
+
+            font-size: 14px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <h1>🎡 랜덤 룰렛</h1>
+
+
+    <div class="description">
+        이름을 한 줄에 하나씩 입력하세요!
+    </div>
+
+
+    <textarea
+        id="names"
+        placeholder="여기에 이름을 입력하세요."
+    ></textarea>
+
+
+    <div class="roulette-area">
+
+        <div class="pointer"></div>
+
+        <canvas id="wheel"></canvas>
+
+        <div class="center">
+            🎯
+        </div>
+
+    </div>
+
+
+    <button
+        class="draw"
+        id="drawButton"
+        onclick="startRoulette()"
+    >
+        🎡 룰렛 돌리기!
+    </button>
+
+
+    <button
+        class="reset"
+        onclick="resetRoulette()"
+    >
+        🔄 초기화
+    </button>
+
+
+    <div
+        class="result"
+        id="result"
+    ></div>
+
+
+    <div
+        class="count"
+        id="count"
+    >
+        참가자를 입력해주세요.
+    </div>
+
+
+</div>
+
+
+<script>
+
+    const canvas =
+        document.getElementById("wheel");
+
+    const ctx =
+        canvas.getContext("2d");
+
+
+    let remainingNames = [];
+
+    let currentRotation = 0;
+
+    let isSpinning = false;
+
+
+    const colors = [
+
+        "#ff4757",
+        "#ff9f43",
+        "#2ed573",
+        "#1e90ff",
+        "#5352ed",
+        "#a55eea",
+        "#00cec9",
+        "#ff6b81"
+
+    ];
+
+
+    /*
+    ========================================
+    참가자 가져오기
+    ========================================
+    */
+
+    function getNames() {
+
+        return document
+            .getElementById("names")
+            .value
+            .split("\n")
+            .map(name => name.trim())
+            .filter(name => name !== "");
+
+    }
+
+
+    /*
+    ========================================
+    캔버스 크기
+    ========================================
+    */
+
+    function resizeCanvas() {
+
+        const size =
+            canvas.clientWidth;
+
+        const dpr =
+            window.devicePixelRatio || 1;
+
+        canvas.width =
+            size * dpr;
+
+        canvas.height =
+            size * dpr;
+
+        ctx.setTransform(
+            dpr,
+            0,
+            0,
+            dpr,
+            0,
+            0
+        );
+
+        drawWheel();
+
+    }
+
+
+    /*
+    ========================================
+    룰렛 그리기
+    ========================================
+    */
+
+    function drawWheel() {
+
+        const size =
+            canvas.clientWidth;
+
+        const center =
+            size / 2;
+
+        const radius =
+            size / 2 - 5;
+
+
+        ctx.clearRect(
+            0,
+            0,
+            size,
+            size
+        );
+
+
+        if (
+            remainingNames.length === 0
+        ) {
+
+            /*
+            참가자가 없을 때
+            회색 원도 표시하지 않음
+            */
+
+            return;
+
+        }
+
+
+        const count =
+            remainingNames.length;
+
+
+        const slice =
+            Math.PI * 2 / count;
+
+
+        /*
+        룰렛 시작 위치
+
+        -90도 = 위쪽
+        */
+
+        const startAngle =
+            -Math.PI / 2;
+
+
+        for (
+            let i = 0;
+            i < count;
+            i++
+        ) {
+
+            const start =
+                startAngle
+                + i * slice;
+
+
+            const end =
+                start + slice;
+
+
+            /*
+            조각
+            */
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                center,
+                center
+            );
+
+            ctx.arc(
+                center,
+                center,
+                radius,
+                start,
+                end
+            );
+
+            ctx.closePath();
+
+
+            ctx.fillStyle =
+                colors[
+                    i % colors.length
+                ];
+
+            ctx.fill();
+
+
+            /*
+            테두리
+            */
+
+            ctx.strokeStyle =
+                "white";
+
+            ctx.lineWidth = 2;
+
+            ctx.stroke();
+
+
+            /*
+            =================================
+            이름 위치
+            =================================
+            */
+
+            const middle =
+                start
+                + slice / 2;
+
+
+            /*
+            이름을 원 중심에서
+            약 62% 지점에 배치
+            */
+
+            const textRadius =
+                radius * 0.62;
+
+
+            const x =
+                center
+                + Math.cos(middle)
+                * textRadius;
+
+
+            const y =
+                center
+                + Math.sin(middle)
+                * textRadius;
+
+
+            ctx.save();
+
+
+            ctx.translate(
+                x,
+                y
+            );
+
+
+            /*
+            글자를 항상
+            읽기 편하게 유지
+            */
+
+            let textAngle =
+                middle
+                + Math.PI / 2;
+
+
+            /*
+            뒤집혀 보이는 글자는
+            반대로 돌림
+            */
+
+            if (
+                textAngle > Math.PI / 2
+                &&
+                textAngle < Math.PI * 1.5
+            ) {
+
+                textAngle += Math.PI;
+
+            }
+
+
+            ctx.rotate(
+                textAngle
+            );
+
+
+            /*
+            글자 크기 자동 조절
+
+            사람이 적으면 크게,
+            많으면 작게
+            */
+
+            let fontSize;
+
+
+            if (count <= 4) {
+
+                fontSize = 22;
+
+            }
+
+            else if (count <= 8) {
+
+                fontSize = 18;
+
+            }
+
+            else if (count <= 12) {
+
+                fontSize = 15;
+
+            }
+
+            else {
+
+                fontSize = 12;
+
+            }
+
+
+            ctx.font =
+                `bold ${fontSize}px Arial, "Noto Sans KR", sans-serif`;
+
+
+            ctx.fillStyle =
+                "white";
+
+
+            ctx.textAlign =
+                "center";
+
+
+            ctx.textBaseline =
+                "middle";
+
+
+            ctx.shadowColor =
+                "rgba(0,0,0,0.6)";
+
+            ctx.shadowBlur = 4;
+
+
+            /*
+            너무 긴 이름은
+            자동으로 줄임
+            */
+
+            let text =
+                remainingNames[i];
+
+
+            const maxWidth =
+                radius * 0.45;
+
+
+            if (
+                ctx.measureText(text).width
+                > maxWidth
+            ) {
+
+                while (
+                    text.length > 1
+                    &&
+                    ctx.measureText(
+                        text + "…"
+                    ).width
+                    > maxWidth
+                ) {
+
+                    text =
+                        text.slice(
+                            0,
+                            -1
+                        );
+
+                }
+
+                text += "…";
+
+            }
+
+
+            ctx.fillText(
+                text,
+                0,
+                0
+            );
+
+
+            ctx.restore();
+
+        }
+
+
+        /*
+        가운데 원
+        */
+
+        ctx.beginPath();
+
+        ctx.arc(
+            center,
+            center,
+            radius * 0.16,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fillStyle =
+            "white";
+
+        ctx.fill();
+
+
+        ctx.strokeStyle =
+            "#333";
+
+        ctx.lineWidth = 5;
+
+        ctx.stroke();
+
+    }
+
+
+    /*
+    ========================================
+    룰렛 돌리기
+    ========================================
+    */
+
+    function startRoulette() {
+
+        if (isSpinning) {
+            return;
+        }
+
+
+        /*
+        처음 시작할 때
+        이름 가져오기
+        */
+
+        if (
+            remainingNames.length === 0
+        ) {
+
+            remainingNames =
+                getNames();
+
+        }
+
+
+        if (
+            remainingNames.length === 0
+        ) {
+
+            alert(
+                "참가자를 먼저 입력해주세요!"
+            );
+
+            return;
+
+        }
+
+
+        isSpinning = true;
+
+
+        const button =
+            document.getElementById(
+                "drawButton"
+            );
+
+
+        button.disabled = true;
+
+
+        document.getElementById(
+            "result"
+        ).innerHTML = "";
+
+
+        /*
+        룰렛 다시 그림
+        */
+
+        drawWheel();
+
+
+        const count =
+            remainingNames.length;
+
+
+        /*
+        ====================================
+        당첨자 결정
+        ====================================
+        */
+
+        const winnerIndex =
+            Math.floor(
+                Math.random() * count
+            );
+
+
+        const winner =
+            remainingNames[
+                winnerIndex
+            ];
+
+
+        /*
+        ====================================
+        각 조각의 각도
+        ====================================
+        */
+
+        const slice =
+            360 / count;
+
+
+        /*
+        첫 조각의 중앙은
+
+        -90 + slice / 2
+
+        ====================================
+        당첨자의 중앙 각도
+        ====================================
+        */
+
+        const winnerAngle =
+            -90
+            + winnerIndex * slice
+            + slice / 2;
+
+
+        /*
+        화살표는 위쪽 = -90도
+
+        따라서 당첨자의 중앙이
+        -90도까지 오도록 회전
+        */
+
+        let neededRotation =
+            -90
+            - winnerAngle;
+
+
+        /*
+        현재 회전 상태 보정
+        */
+
+        neededRotation -=
+            currentRotation;
+
+
+        /*
+        최소 5바퀴
+        */
+
+        const extraSpins =
+            5
+            + Math.floor(
+                Math.random() * 3
+            );
+
+
+        const finalRotation =
+            currentRotation
+            + extraSpins * 360
+            + neededRotation;
+
+
+        currentRotation =
+            finalRotation;
+
+
+        /*
+        ====================================
+        회전 시작
+        ====================================
+        */
+
+        canvas.style.transform =
+            `rotate(
+                ${finalRotation}deg
+            )`;
+
+
+        /*
+        ====================================
+        회전 종료
+        ====================================
+        */
+
+        setTimeout(
+            () => {
+
+                document.getElementById(
+                    "result"
+                ).innerHTML =
+
+                    `
+                    <div class="winner">
+                        🎉 ${winner} 당첨! 🎉
+                    </div>
+                    `;
+
+
+                /*
+                당첨자 제거
+                */
+
+                remainingNames.splice(
+                    winnerIndex,
+                    1
+                );
+
+
+                /*
+                남은 인원
+                */
+
+                if (
+                    remainingNames.length === 0
+                ) {
+
+                    document.getElementById(
+                        "count"
+                    ).innerText =
+                        "🎉 모든 참가자가 뽑혔습니다!";
+
+                }
+
+                else {
+
+                    document.getElementById(
+                        "count"
+                    ).innerText =
+
+                        `남은 참가자:
+                        ${remainingNames.length}명`;
+
+                }
+
+
+                isSpinning = false;
+
+                button.disabled = false;
+
+
+                /*
+                다음 룰렛을 위해
+                새 참가자 목록을 그림
+                */
+
+                drawWheel();
+
+            },
+
+            5700
+        );
+
+    }
+
+
+    /*
+    ========================================
+    초기화
+    ========================================
+    */
+
+    function resetRoulette() {
+
+        remainingNames = [];
+
+        currentRotation = 0;
+
+        isSpinning = false;
+
+
+        canvas.style.transform =
+            "rotate(0deg)";
+
+
+        document.getElementById(
+            "result"
+        ).innerHTML = "";
+
+
+        document.getElementById(
+            "count"
+        ).innerText =
+            "참가자를 입력해주세요.";
+
+
+        document.getElementById(
+            "drawButton"
+        ).disabled = false;
+
+
+        drawWheel();
+
+    }
+
+
+    /*
+    ========================================
+    화면 크기 변경
+    ========================================
+    */
+
+    window.addEventListener(
+        "resize",
+        resizeCanvas
+    );
+
+
+    /*
+    처음 실행
+    */
+
+    resizeCanvas();
+
+</script>
+
+</body>
+
+</html>
